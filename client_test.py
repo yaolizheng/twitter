@@ -2,7 +2,7 @@ import logging
 import http_client
 import client
 import time
-# import json
+from test_utils import generate_tweets
 
 
 log = logging.getLogger(__name__)
@@ -33,21 +33,31 @@ class test:
         self.follow_client.post(self.user_1, self.user_3)
         self.follow_client.post(self.user_1, self.user_4)
         follows = self.follow_client.get(self.user_1)['data']
-        print follows
         assert self.user_2 in follows
         assert self.user_3 in follows
         assert self.user_4 in follows
 
     def test_tweet(self):
         result = []
+        res = self.feed_client.get(self.user_1)['data']
+        print res
         for i in range(5):
             result.append(
-                self.tweet_client.post(self.user_1, 'tweet1_%s' % i)['data'])
-            time.sleep(1)
+                self.tweet_client.post(self.user_1, generate_tweets())['data'])
+            time.sleep(0.2)
         for i in range(5):
             result.append(
-                self.tweet_client.post(self.user_2, 'tweet2_%s' % i)['data'])
-            time.sleep(1)
+                self.tweet_client.post(self.user_2, generate_tweets())['data'])
+            time.sleep(0.2)
+        res = self.feed_client.get(self.user_1)['data']
+        for i in range(5):
+            result.append(
+                self.tweet_client.post(self.user_3, generate_tweets())['data'])
+            time.sleep(0.2)
+        for i in range(5):
+            result.append(
+                self.tweet_client.post(self.user_4, generate_tweets())['data'])
+            time.sleep(0.2)
         res = self.feed_client.get(self.user_1)['data']
         print res
 

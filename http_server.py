@@ -5,6 +5,10 @@ import handlers
 from twitter import Twitter
 import logging
 from db import model
+import pylibmc
+import json
+import argparse
+
 
 log = logging.getLogger(__name__)
 
@@ -14,13 +18,15 @@ class WebServer:
     def __init__(self, config):
         self.config = config
         self.ioloop = tornado.ioloop.IOLoop.instance()
-        twitter = Twitter()
+        mc = pylibmc.Client(self.config['cache'])
+        twitter = Twitter(mc)
         kwargs = dict(twitter=twitter, config=config)
         self.app = self.make_app(kwargs)
         self.http_server = tornado.httpserver.HTTPServer(self.app)
+        db_config = self.config['db']
         model.init_database(
-            self.config['db'], self.config['keyspace'],
-            self.config['db_user'], self.config['db_pass'])
+            db_config['address'], db_config['keyspace'],
+            db_config['username'], db_config['password'])
 
     def make_app(self, kwargs):
         return tornado.web.Application([
@@ -57,10 +63,12 @@ class WebServer:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    config = {
-        'port': 11222, 'host': 'localhost', 'db': ['172.17.0.20'],
-        'keyspace': 'twitter', 'db_user': 'cassandra',
-        'db_pass': 'cassandra'}
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default='config.json')
+    args = parser.parse_args()
+    with open(args.config) as f:
+        config = json.load(f)
+    log.info(config)
     server = WebServer(config)
     server.serve()
