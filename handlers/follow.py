@@ -30,7 +30,7 @@ class Handler(base.Handler):
         log.info('get %s ' % follower)
         self.set_header('Content-Type', 'application/json')
         response = self.response
-        response['data'] = list(self.twitter.get_follow(follower))
+        response['data'] = self.twitter.get_follow(follower)
         self.finish(json.dumps(response))
 
     @gen.coroutine
