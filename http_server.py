@@ -18,7 +18,7 @@ class WebServer:
     def __init__(self, config):
         self.config = config
         self.ioloop = tornado.ioloop.IOLoop.instance()
-        mc = pylibmc.Client(self.config['cache'])
+        mc = pylibmc.Client(self.config['cache'], behaviors={"cas": True})
         twitter = Twitter(mc)
         kwargs = dict(twitter=twitter, config=config)
         self.app = self.make_app(kwargs)

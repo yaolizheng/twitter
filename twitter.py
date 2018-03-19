@@ -1,5 +1,6 @@
 from tweet import Tweet
 from collections import defaultdict
+from cassandra.cqlengine.query import DoesNotExist
 from db import model
 import time
 import logging
@@ -14,8 +15,8 @@ class Twitter:
     def __init__(self, mc):
         self.timelines = defaultdict(list)
         self.relations = defaultdict(set)
-        self.relation_cache = Cache(mc, prefix='REL-')
-        self.user_tweet_cache = Cache(mc, prefix='TWT-', limit=10)
+        self.relation_cache = Cache(mc, prefix='REL', dup=False)
+        self.user_tweet_cache = Cache(mc, prefix='TWT', limit=10)
         self.tweet_cache = Cache(mc)
 
     def post_tweet(self, user_id, tweet):
@@ -35,11 +36,14 @@ class Twitter:
             return
         kwargs = {'follower': follower_id, 'followee': followee_id}
         model.Relation.create(**kwargs)
-        # update cached relations
         self.relation_cache.update(follower_id, followee_id)
 
     def unfollow(self, follower_id, followee_id):
-        model.Relation.get(follower=follower_id, followee=followee_id).delete()
+        try:
+            model.Relation.get(follower=follower_id, followee=followee_id).delete()
+        except DoesNotExist:
+            log.info('Relation entry not found %s %s' % (
+                follower_id, followee_id))
         self.relation_cache.remove(follower_id, followee_id)
 
     def get_feed(self, user_id):
@@ -70,7 +74,7 @@ class Twitter:
                         tweet[0], tweet[1], tweet[2], self.tweet_cache))
         # get latest tweets
         candidates.sort(key=lambda x: x.timestamp, reverse=True)
-        return [str(c) for c in candidates[-10:]]
+        return [str(c) for c in candidates[:10]]
 
     def get_follow(self, user_id):
         res = self.relation_cache.get(user_id)
