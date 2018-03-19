@@ -1,0 +1,12 @@
+{
+  "node": "apiserver",
+  "port": 11222,
+  "host": "localhost",
+  "db": {
+      "address": ["172.17.0.20"],
+      "keyspace": "twitter",
+      "username": "cassandra",
+      "password": "cassandra"
+  },
+  "cache": ["127.0.0.1"]
+}

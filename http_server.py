@@ -65,10 +65,9 @@ class WebServer:
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='config.json')
+    parser.add_argument('--config', default='local_config.json')
     args = parser.parse_args()
     with open(args.config) as f:
         config = json.load(f)
-    log.info(config)
     server = WebServer(config)
     server.serve()

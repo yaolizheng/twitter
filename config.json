@@ -1,11 +1,44 @@
 {
   "port": 11222,
-  "host": "localhost",
+  "host": "0.0.0.0",
   "db": {
-      "address": ["172.17.0.20"],
+      "address": ["172.31.26.146"],
       "keyspace": "twitter",
       "username": "cassandra",
       "password": "cassandra"
   },
-  "cache": ["127.0.0.1"]
+  "cache": ["172.31.17.240"],
+  "logging": {
+    "version": 1,
+    "formatters": {
+      "verbose": {
+        "format": "%(levelname)s %(asctime)s module=%(module)s process=%(process)d thread=%(thread)d %(message).10000s"
+      },
+      "syslogformat": {
+        "format": "service=twitter %(levelname)s module=%(module)s process=%(process)d thread=%(thread)d %(message).10000s"
+      }
+    },
+    "handlers": {
+      "syslog": {
+        "class": "logging.handlers.SysLogHandler",
+        "formatter": "syslogformat",
+        "level": "INFO",
+        "address": "/dev/log"
+      },
+      "console": {
+        "level": "INFO",
+        "class": "logging.StreamHandler",
+        "formatter": "verbose"
+      }
+    },
+    "loggers": {
+      "urllib3": { "level": "WARNING" },
+      "etcd": { "level": "WARNING" },
+      "": {
+        "handlers": ["syslog", "console"],
+        "level": "DEBUG",
+        "propagate": true
+      }
+    }
+  }
 }

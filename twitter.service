@@ -1,0 +1,16 @@
+[Unit]
+Description=LSB: twitter
+After=local-fs.target remote-fs.target systemd-journald-dev-log.socket
+
+[Service]
+Type=simple
+Restart=no
+TimeoutStartSec=5m
+TimeoutStopSec=30m
+IgnoreSIGPIPE=no
+KillMode=process
+ExecStart=/usr/sbin/twitter --foreground
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target

@@ -64,8 +64,8 @@ class FunctionalTest:
 
     def test(self):
         self.test_user()
-        self.test_follow()
-        self.test_tweet()
+        # self.test_follow()
+        # self.test_tweet()
 
 
 class ScaleTest:
@@ -105,7 +105,8 @@ class ScaleTest:
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # url = "http://52.32.47.169:11222"
-    url = "http://localhost:11222"
+    url = "http://twitter-alb-1269535057.us-west-2.elb.amazonaws.com"
+    # url = "http://localhost:11222"
     # test = FunctionalTest(url)
     test = ScaleTest(url)
     test.test()
