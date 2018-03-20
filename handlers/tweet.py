@@ -18,10 +18,25 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def post(self, user_id):
-        log.info('post %s %s' % (user_id, self.request.body))
+        log.info('post tweet %s %s' % (user_id, self.request.body))
         tweet = json.loads(self.request.body)['tweet']
-        log.info('tweet %s' % tweet)
         response = self.response
         response['data'] = str(self.twitter.post_tweet(user_id, tweet))
+        self.set_header('Content-Type', 'application/json')
+        self.finish(json.dumps(response))
+
+    @gen.coroutine
+    def get(self, user_id):
+        log.info('get tweet %s' % user_id)
+        response = self.response
+        response['data'] = [str(x) for x in self.twitter.get_tweet(user_id)]
+        self.set_header('Content-Type', 'application/json')
+        self.finish(json.dumps(response))
+
+    @gen.coroutine
+    def delete(self, user_id):
+        log.info('delete tweet %s %s' % (user_id, self.request.body))
+        tweet = json.loads(self.request.body)['tweet']
+        self.twitter.delete_tweet(user_id, tweet)
         self.set_header('Content-Type', 'application/json')
         self.finish(json.dumps(self.response))

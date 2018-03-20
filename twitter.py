@@ -12,11 +12,14 @@ log = logging.getLogger(__name__)
 
 class Twitter:
 
-    def __init__(self, mc):
+    def __init__(self, mc, config):
         self.timelines = defaultdict(list)
         self.relations = defaultdict(set)
+        self.tweets_cache = config['tweets_cache']
+        self.feed_num = config['feed_num']
         self.relation_cache = Cache(mc, prefix='REL', dup=False)
-        self.user_tweet_cache = Cache(mc, prefix='TWT', limit=10)
+        self.user_tweet_cache = Cache(
+            mc, prefix='TWT', limit=self.tweets_cache)
         self.tweet_cache = Cache(mc)
 
     def post_tweet(self, user_id, tweet):
@@ -53,20 +56,8 @@ class Twitter:
             # try get user top tweets from cache first
             res = self.user_tweet_cache.get(user)
             if res is None:
-                tweets = sorted(model.Tweet.filter(
-                    user_id=user), key=lambda x: x.time_stamp,
-                    reverse=True)[:10]
-                cache_list = []
-                for tweet in tweets:
-                    log.info('Find tweets %s in db for %s' % (
-                        tweet.id, tweet.user_id))
-                    candidates.append(Tweet(
-                        tweet.id, tweet.user_id, tweet.time_stamp,
-                        self.tweet_cache))
-                    cache_list.append((
-                        tweet.id, tweet.user_id, tweet.time_stamp))
-                # cache user top tweets
-                self.user_tweet_cache.set(user, cache_list)
+                candidates += self.get_tweet(
+                    user, limit=self.tweets_cache, update_cache=True)
             else:
                 log.info('Load tweets from cache for user %s' % user)
                 for tweet in res:
@@ -74,7 +65,37 @@ class Twitter:
                         tweet[0], tweet[1], tweet[2], self.tweet_cache))
         # get latest tweets
         candidates.sort(key=lambda x: x.timestamp, reverse=True)
-        return [str(c) for c in candidates[:10]]
+        return [str(c) for c in candidates[:self.feed_num]]
+
+    def get_tweet(self, user_id, limit=None, update_cache=False):
+        # read tweets from db
+        tweets = sorted(model.Tweet.filter(
+            user_id=user_id), key=lambda x: x.time_stamp, reverse=True)
+        candidates = []
+        cache_list = []
+        for i in range(len(tweets)):
+            if limit is not None and i > limit:
+                break
+            tweet = tweets[i]
+            log.info('Find tweets %s in db for %s' % (
+                tweet.id, tweet.user_id))
+            candidates.append(Tweet(
+                tweet.id, tweet.user_id, tweet.time_stamp,
+                self.tweet_cache))
+            cache_list.append((
+                tweet.id, tweet.user_id, tweet.time_stamp))
+        if update_cache:
+            self.user_tweet_cache.set(user_id, cache_list)
+        return candidates
+
+    def delete_tweet(self, user_id, tweet_id):
+        try:
+            tweet = model.Tweet.get(id=tweet_id)
+        except DoesNotExist:
+            log.warning('Tweet %s not found' % id)
+        self.user_tweet_cache.remove(user_id, (
+            tweet.id, tweet.user_id, tweet.time_stamp))
+        tweet.delete()
 
     def get_follow(self, user_id):
         res = self.relation_cache.get(user_id)
@@ -91,4 +112,24 @@ class Twitter:
         return model.User.create(**kwargs).id
 
     def get_user(self, id):
-        return model.User.get(id=id).name
+        try:
+            return model.User.get(id=id).name
+        except DoesNotExist:
+            log.warning('User %s not found' % id)
+            return None
+
+    def delete_user(self, id):
+        try:
+            model.User.get(id=id).delete()
+        except DoesNotExist:
+            log.warning('User %s not found' % id)
+        # delete relation
+        for relation in model.Relation.filter(followee=id).allow_filtering():
+            self.unfollow(relation.follower, relation.followee)
+        for relation in model.Relation.filter(follower=id):
+            relation.delete()
+        # delete cache
+        self.relation_cache.delete(id)
+        self.user_tweet_cache.delete(id)
+        for tweet in model.Tweet.filter(user_id=id):
+            tweet.delete()

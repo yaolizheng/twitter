@@ -19,7 +19,7 @@ class WebServer:
         self.config = config
         self.ioloop = tornado.ioloop.IOLoop.instance()
         mc = pylibmc.Client(self.config['cache'], behaviors={"cas": True})
-        twitter = Twitter(mc)
+        twitter = Twitter(mc, self.config)
         kwargs = dict(twitter=twitter, config=config)
         self.app = self.make_app(kwargs)
         self.http_server = tornado.httpserver.HTTPServer(self.app)

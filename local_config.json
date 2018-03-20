@@ -1,5 +1,7 @@
 {
   "node": "apiserver",
+  "tweets_cache": 10,
+  "feed_num": 10,
   "port": 11222,
   "host": "localhost",
   "db": {

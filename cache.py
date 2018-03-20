@@ -61,3 +61,12 @@ class Cache(object):
                 res.remove(value)
                 if not self.cas(key, res, token):
                     raise MemcachedRetryException()
+
+    def delete(self, key):
+        try:
+            key = self.get_key(key)
+            del self.mc[key]
+        except KeyError:
+            return None
+        except:
+            log.exception('Failed to delete key %s' % key)

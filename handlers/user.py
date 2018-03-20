@@ -17,10 +17,26 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def post(self):
-        log.info('post %s' % self.request.body)
+        log.info('post user %s' % self.request.body)
         name = json.loads(self.request.body)['name']
-        log.info('name %s' % name)
         response = self.response
         response['data'] = str(self.twitter.add_user(name))
         self.set_header('Content-Type', 'application/json')
+        self.finish(json.dumps(response))
+
+    @gen.coroutine
+    def delete(self):
+        log.info('delete user %s' % self.request.body)
+        id = json.loads(self.request.body)['id']
+        self.twitter.delete_user(id)
+        self.set_header('Content-Type', 'application/json')
         self.finish(json.dumps(self.response))
+
+    @gen.coroutine
+    def get(self):
+        id = self.get_argument('id', None)
+        log.info('get user %s' % id)
+        response = self.response
+        response['data'] = self.twitter.get_user(id)
+        self.set_header('Content-Type', 'application/json')
+        self.finish(json.dumps(response))

@@ -1,13 +1,15 @@
 {
   "port": 11222,
   "host": "0.0.0.0",
+  "tweets_cache": 10,
+  "feed_num": 10,
   "db": {
-      "address": ["172.31.26.146"],
+      "address": ["db-d1"],
       "keyspace": "twitter",
       "username": "cassandra",
       "password": "cassandra"
   },
-  "cache": ["172.31.17.240"],
+  "cache": ["cache-d1"],
   "logging": {
     "version": 1,
     "formatters": {

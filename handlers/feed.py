@@ -18,7 +18,7 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def get(self, user_id):
-        log.info('get %s ' % user_id)
+        log.info('get feed %s ' % user_id)
         self.set_header('Content-Type', 'application/json')
         response = self.response
         response['data'] = self.twitter.get_feed(user_id)
