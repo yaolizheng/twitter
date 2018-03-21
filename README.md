@@ -24,7 +24,7 @@ client -> load balancer -> API server -> memcached server -> Cassandra server
 #### Cache strategy
 - relation cache
 ```
-<user_id, [folloee_id, folloee_id, folloee_id...]>
+<user_id, [followee_id, followee_id, followee_id...]>
 ```
 - tweet cache
 ```
@@ -99,7 +99,7 @@ service twitter restart
 URL                     method      data              parameter         description                             return value
 /follow/follower_id     POST        followee_id                         Follower_id follows followee_id         
 /follow/follower_id     GET                                             Get followee for follower_id            list of followees
-/follow/follower_id     delete      followee_id                         Follower_id unfollows followee_id
+/follow/follower_id     DELETE      followee_id                         Follower_id unfollows followee_id
 /tweet/user_id          POST        tweet                               Post tweet for user_id                  tweet id
 /tweet/user_id          GET                                             Get user_id's tweets                    list of tweets
 /tweet/user_id          DELETE      tweet_id                            Delete tweet_id
