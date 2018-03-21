@@ -39,7 +39,7 @@ class FunctionalTest:
         assert self.user_client.get(self.user_4)['data'] is not None
         test_log('Delete user4')
         self.user_client.delete(self.user_4)
-        time.sleep(1)
+        time.sleep(2)
         test_log('Get user4')
         test_log('Test user4 is gone')
         assert self.user_client.get(self.user_4)['data'] is None
@@ -78,7 +78,7 @@ class FunctionalTest:
     def test_tweet(self):
         result = []
         contents = []
-        # delete_test = None
+        delete_test = None
         test_log('Get feeds for user1')
         test_log('Test feeds for user1 is empty')
         assert self.feed_client.get(self.user_1)['data'] == []
