@@ -23,6 +23,7 @@ class Twitter:
         self.tweet_cache = Cache(mc)
 
     def post_tweet(self, user_id, tweet):
+        # create db entry
         kwargs = {
             'user_id': user_id, 'content': tweet,
             'time_stamp': str(int(time.time()))}
@@ -37,18 +38,22 @@ class Twitter:
     def follow(self, follower_id, followee_id):
         if follower_id == followee_id:
             return
+        # create db entry
         kwargs = {'follower': follower_id, 'followee': followee_id}
         model.Relation.create(**kwargs)
+        # update user relation cache
         self.relation_cache.update(follower_id, followee_id)
 
     def unfollow(self, follower_id, followee_id):
         if follower_id == followee_id:
             return
         try:
+            # create db entry
             model.Relation.get(follower=follower_id, followee=followee_id).delete()
         except DoesNotExist:
             log.info('Relation entry not found %s %s' % (
                 follower_id, followee_id))
+        # update user relation cache
         self.relation_cache.remove(follower_id, followee_id)
 
     def get_feed(self, user_id):
@@ -58,14 +63,16 @@ class Twitter:
             # try get user top tweets from cache first
             res = self.user_tweet_cache.get(user)
             if res is None:
+                # get tweets from database
                 candidates += self.get_tweet(
                     user, limit=self.tweets_cache, update_cache=True)
             else:
+                # load tweets from cache
                 log.info('Load tweets from cache for user %s' % user)
                 for tweet in res:
                     candidates.append(Tweet(
                         tweet[0], tweet[1], tweet[2], self.tweet_cache))
-        # get latest tweets
+        # sort tweets
         candidates.sort(key=lambda x: x.timestamp, reverse=True)
         return [str(c) for c in candidates[:self.feed_num]]
 
@@ -87,21 +94,26 @@ class Twitter:
             cache_list.append((
                 tweet.id, tweet.user_id, tweet.time_stamp))
         if update_cache:
+            # update user's top tweet cache
             self.user_tweet_cache.set(user_id, cache_list)
         return candidates
 
     def delete_tweet(self, user_id, tweet_id):
         try:
+            # delete db entry
             tweet = model.Tweet.get(id=tweet_id)
         except DoesNotExist:
             log.warning('Tweet %s not found' % id)
+        # update user top tweets cache
         self.user_tweet_cache.remove(user_id, (
             tweet.id, tweet.user_id, tweet.time_stamp))
         tweet.delete()
 
     def get_follow(self, user_id):
+        # try get followee from cache
         res = self.relation_cache.get(user_id)
         if res is None:
+            # get followee from db
             res = [str(x.followee) for x in model.Relation.filter(
                 follower=user_id)]
             self.relation_cache.set(user_id, res)
@@ -110,11 +122,13 @@ class Twitter:
         return res
 
     def add_user(self, name):
+        # create db entry
         kwargs = {'name': name}
         return model.User.create(**kwargs).id
 
     def get_user(self, id):
         try:
+            # get user from db
             return model.User.get(id=id).name
         except DoesNotExist:
             log.warning('User %s not found' % id)
@@ -122,6 +136,7 @@ class Twitter:
 
     def delete_user(self, id):
         try:
+            # delete db entry
             model.User.get(id=id).delete()
         except DoesNotExist:
             log.warning('User %s not found' % id)
