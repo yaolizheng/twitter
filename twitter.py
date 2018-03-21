@@ -42,6 +42,8 @@ class Twitter:
         self.relation_cache.update(follower_id, followee_id)
 
     def unfollow(self, follower_id, followee_id):
+        if follower_id == followee_id:
+            return
         try:
             model.Relation.get(follower=follower_id, followee=followee_id).delete()
         except DoesNotExist:
