@@ -13,10 +13,11 @@ HTTPError = requests.exceptions.HTTPError
 
 class HttpClient(object):
 
-    def __init__(self, url, secure=None, cert=None):
+    def __init__(self, url, secure=None, cert=None, token=None):
         self._url = url
         self._secure = secure
         self._cert = cert
+        self._token = token
 
     @property
     def url(self):
@@ -26,7 +27,8 @@ class HttpClient(object):
         if not args:
             return self
         url = self.absurl(list(args))
-        return HttpClient(url, secure=self._secure, cert=self._cert)
+        return HttpClient(
+            url, secure=self._secure, cert=self._cert, token=self._token)
 
     def absurl(self, path):
         url = urlparse.urlsplit(self._url, scheme="http")
@@ -68,8 +70,12 @@ class HttpClient(object):
 
     def _make_request(self, method, path=[], **kwargs):
         url = self.absurl(path)
+        headers = dict()
+        if self._token:
+            headers["Auth-Token"] = self._token
         response = requests.request(
             method=method,
+            headers=headers,
             url=url,
             **kwargs
         )

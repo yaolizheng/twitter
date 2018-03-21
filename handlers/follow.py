@@ -18,6 +18,7 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def post(self, follower):
+        self.check_authorized()
         log.info('post follow %s %s' % (follower, self.request.body))
         followee = json.loads(self.request.body)['followee']
         log.info('followee %s' % followee)
@@ -27,6 +28,7 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def get(self, follower):
+        self.check_authorized()
         log.info('get follow %s ' % follower)
         self.set_header('Content-Type', 'application/json')
         response = self.response
@@ -35,6 +37,7 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def delete(self, follower):
+        self.check_authorized()
         log.info('delete follow %s %s' % (follower, self.request.body))
         followee = json.loads(self.request.body)['followee']
         self.twitter.unfollow(follower, followee)

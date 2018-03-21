@@ -18,6 +18,7 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def get(self, user_id):
+        self.check_authorized()
         log.info('get feed %s ' % user_id)
         self.set_header('Content-Type', 'application/json')
         response = self.response

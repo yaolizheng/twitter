@@ -18,6 +18,7 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def post(self, user_id):
+        self.check_authorized()
         log.info('post tweet %s %s' % (user_id, self.request.body))
         tweet = json.loads(self.request.body)['tweet']
         response = self.response
@@ -27,6 +28,7 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def get(self, user_id):
+        self.check_authorized()
         log.info('get tweet %s' % user_id)
         response = self.response
         response['data'] = [str(x) for x in self.twitter.get_tweet(user_id)]
@@ -35,6 +37,7 @@ class Handler(base.Handler):
 
     @gen.coroutine
     def delete(self, user_id):
+        self.check_authorized()
         log.info('delete tweet %s %s' % (user_id, self.request.body))
         tweet = json.loads(self.request.body)['tweet']
         self.twitter.delete_tweet(user_id, tweet)

@@ -7,6 +7,7 @@ import time
 from test_utils import generate_tweets
 import json
 import concurrent.futures
+from handlers import auth
 
 
 log = logging.getLogger(__name__)
@@ -15,11 +16,13 @@ log = logging.getLogger(__name__)
 def test_log(msg):
     log.info('----------%s----------' % msg)
 
+CERT = '/home/yzheng/twitter/twitter/certs/test_root_ca.crt'
+
 
 class FunctionalTest:
 
     def __init__(self, url):
-        h_client = http_client.HttpClient(url)
+        h_client = http_client.HttpClient(url, token=auth.TEST_TOKEN, secure=CERT)
         self.follow_client = client.Follow(h_client)
         self.tweet_client = client.Tweet(h_client)
         self.feed_client = client.Feed(h_client)
@@ -145,7 +148,7 @@ class FunctionalTest:
 class ScaleTest:
 
     def __init__(self, url):
-        h_client = http_client.HttpClient(url)
+        h_client = http_client.HttpClient(url, token=auth.TEST_TOKEN, secure=CERT)
         self.follow_client = client.Follow(h_client)
         self.tweet_client = client.Tweet(h_client)
         self.feed_client = client.Feed(h_client)
