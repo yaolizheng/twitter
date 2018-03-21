@@ -6,6 +6,11 @@ from cassandra.cqlengine import connection
 import uuid
 
 
+"""
+Database modules.
+"""
+
+
 def init_database(cluster, keyspace, db_user, db_pass):
     try:
         auth_provider = PlainTextAuthProvider(

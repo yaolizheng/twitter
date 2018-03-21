@@ -7,6 +7,10 @@ log = logging.getLogger(__name__)
 
 class Cache(object):
 
+    """
+    Client module for memcached.
+    """
+
     def __init__(self, mc, prefix=None, limit=None, dup=True):
         self.mc = mc
         self.prefix = prefix
@@ -37,6 +41,9 @@ class Cache(object):
 
     @retry.retry(timeout=10)
     def update(self, key, value):
+        """
+        Function to add value to existing key.
+        """
         key = self.get_key(key)
         res, token = self.gets(key)
         if res is not None:
@@ -53,6 +60,9 @@ class Cache(object):
 
     @retry.retry(timeout=10)
     def remove(self, key, value):
+        """
+        Function to remove value for existing key.
+        """
         key = self.get_key(key)
         res, token = self.gets(key)
         if res is not None:

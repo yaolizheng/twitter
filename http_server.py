@@ -15,15 +15,23 @@ log = logging.getLogger(__name__)
 
 class WebServer:
 
+    """
+    Main module for web application.
+    All handlers are in handlers module.
+    """
+
     def __init__(self, config):
         self.config = config
         self.ioloop = tornado.ioloop.IOLoop.instance()
+        # initial memcached client
         mc = pylibmc.Client(self.config['cache'], behaviors={"cas": True})
+        # initial twitter instance
         twitter = Twitter(mc, self.config)
         kwargs = dict(twitter=twitter, config=config)
         self.app = self.make_app(kwargs)
         self.http_server = tornado.httpserver.HTTPServer(self.app)
         db_config = self.config['db']
+        # initial database connection
         model.init_database(
             db_config['address'], db_config['keyspace'],
             db_config['username'], db_config['password'])

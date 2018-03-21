@@ -12,6 +12,10 @@ log = logging.getLogger(__name__)
 
 class Twitter:
 
+    """
+    Module for core twitter service.
+    """
+
     def __init__(self, mc, config):
         self.timelines = defaultdict(list)
         self.relations = defaultdict(set)
